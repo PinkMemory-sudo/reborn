@@ -446,11 +446,31 @@ String.join(delimiter,elements)
 
 
 
+**异常的体系结构**
+
+Throwable
+
+Exception，error
+
+Exception:Check  UnCheck
+
+
+
 **throw 和 throws 的区别**
 
 throw用来抛出一个异常对象，作用在方法内部
 
 throws表示出现异常的一种可能性，作用在方法名后
+
+
+
+**try-catch-finally**
+
+try 块： ⽤于捕获异常。其后可接零个或多个 catch 块，如果没有 catch 块，则必须跟
+⼀个 finally 块。
+catch 块： ⽤于处理 try 捕获到的异常。
+finally 块： ⽆论是否捕获或处理异常， finally 块⾥的语句都会被执⾏。当在 try 块或
+catch 块中遇到 return 语句时，执行完 return 中的语句后不直接返回，而是执行 finally 语句块的代码，finally 中的 return 会覆盖调 try-catch 中的 return。
 
 ​        
 
@@ -531,7 +551,7 @@ finalize 是 Object 类的一个方法，在垃圾收集器执行的时候会调
 
 字符流是由Java虚拟机将字节转化为2个字节的Unicode字符为单位的字符而成的。
 
-字节流提供了处理任何类型的IO操作的功能，但它不能直接处理Unicode字符
+字节流提供了处理任何类型的IO操作的功能，但它不能直接处理Unicode字符。
 
 
 
@@ -560,6 +580,36 @@ AIP： NIO2，异步非阻塞的 IO 模型，基于事件和回调机制，应�
 同步，发起 read 后一直阻塞，直到将内核态的数据复制到用户态
 
 同步与异步，阻塞与非阻塞的区别：IO包括IO的请求以及实际IO，阻塞和非阻塞发生在IO的请求，同步和异步发生在IO的操作。
+
+
+
+```
+BIO (Blocking I/O): 同步阻塞 I/O 模式，数据的读取写⼊必须阻塞在⼀个线程内等待其完
+成。在活动连接数不是特别⾼（⼩于单机 1000）的情况下，这种模型是⽐ 不错的，可以
+让每⼀个连接专注于⾃⼰的 I/O 并且编程模型简单，也不⽤过多考虑系统的过载、限流等问
+题。线程池本身就是⼀个天然的漏⽃，可以缓冲⼀些系统处理不了的连接或请求。但是，当
+⾯对⼗万甚⾄百万级连接的时候，传统的 BIO 模型是⽆能为⼒的。因此，我们需要⼀种更⾼
+效的 I/O 处理模型来应对更⾼的并发量。
+NIO (Non-blocking/New I/O): NIO 是⼀种同步⾮阻塞的 I/O 模型，在 Java 1.4 中引⼊了
+NIO 框架，对应 java.nio 包，提供了 Channel , Selector，Buffer 等抽象。NIO 中的 N 可以
+理解为 Non-blocking，不单纯是 New。它⽀持⾯向缓冲的，基于通道的 I/O 操作⽅法。
+NIO 提供了与传统 BIO 模型中的 Socket 和 ServerSocket 相对应的 SocketChannel 和
+ServerSocketChannel 两种不同的套接字通道实现,两种通道都⽀持阻塞和⾮阻塞两种模式。
+阻塞模式使⽤就像传统中的⽀持⼀样，⽐ 简单，但是性能和可靠性都不好；⾮阻塞模式正
+好与之相反。对于低负载、低并发的应⽤程序，可以使⽤同步阻塞 I/O 来提升开发速率和更
+好的维护性；对于⾼负载、⾼并发的（⽹络）应⽤，应使⽤ NIO 的⾮阻塞模式来开发
+AIO (Asynchronous I/O): AIO 也就是 NIO 2。在 Java 7 中引⼊了 NIO 的改进版 NIO 2,它
+是异步⾮阻塞的 IO 模型。异步 IO 是基于事件和回调机制实现的，也就是应⽤操作之后会直
+接返回，不会堵塞在那⾥，当后台处理完成，操作系统会通知相应的线程进⾏后续的操作。
+AIO 是异步 IO 的缩写，虽然 NIO 在⽹络操作中，提供了⾮阻塞的⽅法，但是 NIO 的 IO ⾏
+为还是同步的。对于 NIO 来说，我们的业务线程是在 IO 操作准备好时，得到通知，接着就
+由这个线程⾃⾏进⾏ IO 操作，IO 操作本身是同步的。查阅⽹上相关资料，我发现就⽬前来
+说 AIO 的应⽤还不是很⼴泛，Netty 之前也尝试使⽤过 AIO，不过⼜放弃了。
+```
+
+
+
+
 
 
 
@@ -788,6 +838,8 @@ JDK1.8之前的数据结构是数组+链表，JDK1.8之后是数组+链表+红�
 
 **容量为什么是2的幂次方**
 
+需要 hash 对数组长度取模来求出下标
+
 当大是2的幂次方时，求余操作求可以通过(lengh-1)$hash来操作，这样每次根据Hash计算位置时效率就高得多了
 
 
@@ -807,6 +859,8 @@ JDK1.8之前的数据结构是数组+链表，JDK1.8之后是数组+链表+红�
 
 
 **HashMap 多线程操作导致死循环问题**
+
+https://coolshell.cn/articles/9606.html
 
 并发下的Rehash 会造成元素之间会形成一个循环链表。JDK1.8修复了这个问题，但是不推荐多线程使用HashMap。
 
@@ -931,13 +985,6 @@ TreeSet 底层使用红黑树，能够按照添加元素的顺序进行遍历，
 
 * Runnable 接⼝不会返回结果或抛出检查异常，但是 Callable 接⼝可以。
 * Runnable执行run方法，Callable执行call方法 
-
-
-
-**执⾏ execute()⽅法和 submit()⽅法的区别是什么呢？**
-
-* execute() ⽅法⽤于提交不需要返回值的任务
-* submit() ⽅法⽤于提交需要返回值的任务， 线程池会返回⼀个 Future 类型的对象 。
 
 
 
@@ -1129,7 +1176,7 @@ Java的并发采用的是共享内存模型，整个通信过程对我i们来说
 
 
 
-**线程池的7个参数**
+**线程池(ThreadPoolExecutor)的7个参数**
 
 | 参数                     | 说明                                                         |
 | ------------------------ | ------------------------------------------------------------ |
@@ -1170,7 +1217,22 @@ DelayedWorkQueue延迟执行任务
 
 
 
-## **Java内存模型**
+**执⾏ execute()⽅法和 submit()⽅法的区别是什么呢？**
+
+* execute() ⽅法⽤于提交不需要返回值的任务
+* submit() ⽅法⽤于提交需要返回值的任务， 线程池会返回⼀个 Future 类型的对象 。
+
+
+
+**ThreadPoolExecutor分析**
+
+
+
+
+
+## JMM
+
+
 
 
 
@@ -1180,7 +1242,7 @@ DelayedWorkQueue延迟执行任务
 
 **什么是QAS**
 
-AbstractQueuedSynchronizer，用来构建锁和同步器的框架，抽象的队列式的同步器。AQS定义了一套多线程访问共享资源的同步器框架，许多同步类实现都依赖于它，如常用的ReentrantLock/Semaphore/CountDownLatch。
+AbstractQueuedSynchronizer，用来构建**锁**和**同步器**的框架，抽象的队列式的同步器。AQS定义了一套多线程访问共享资源的同步器框架，许多同步类实现都依赖于它，如常用的ReentrantLock/Semaphore/CountDownLatch。
 
 [参考](https://www.cnblogs.com/waterystone/p/4920797.html)
 
@@ -1196,10 +1258,7 @@ AbstractQueuedSynchronizer，用来构建锁和同步器的框架，抽象的队
 
 AbstractQueuedSynchronizer，是一个用来构建锁和同步器的框架。比如我们提到的 ReentrantLock ， Semaphore ，ReentrantReadWriteLock ， SynchronousQueue ， FutureTask 等等皆是基于 AQS的
 
-AQS 核⼼思想是，如果被请求的共享资源空闲，则将当前请求资源的线程设置为有效的⼯作线
-程，并且将共享资源设置为锁定状态。如果被请求的共享资源被占⽤，那么就需要⼀套线程阻塞
-等待以及被唤醒时锁分配的机制，这个机制 AQS 是⽤ CLH 队列锁实现的，即将暂时获取不到锁
-的线程加⼊到队列中。
+AQS 核⼼思想是，如果被请求的共享资源空闲，则将当前请求资源的线程设置为有效的⼯作线程，并且将共享资源设置为锁定状态。如果被请求的共享资源被占⽤，那么就需要⼀套线程阻塞等待以及被唤醒时锁分配的机制，这个机制 AQS 是⽤ CLH 队列锁实现的，即将暂时获取不到锁的线程加⼊到队列中。
 
 
 
@@ -1207,7 +1266,10 @@ AQS 核⼼思想是，如果被请求的共享资源空闲，则将当前请求�
 
 独占，如 ReentrantLock	
 
-共享，如CountDownLatch 、 Semaphore 、 CountDownLatch 、 CyclicBarrier 、 ReadWriteLock 
+共享，如CountDownLatch 、 Semaphore 、 CountDownLatch 、 CyclicBarrier 、 ReadWriteLock。
+
+⾃定义同步器在实现时只需要实现共享资源state 的获取与释放⽅式即可，⾄于具体线程等待队列的维护（如获取资源失败⼊队/唤醒出队
+等），AQS 已经在顶层实现好了。
 
 
 
@@ -1295,6 +1357,35 @@ synchronized关键字可以用来修饰实例方法，静态方法和代码块�
 **修饰代码块**：指定加锁对象，对给定对象/类加锁。 synchronized(this|object) 表示进入同步代码 库前要获得给定对象的锁。 synchronized(􏰄.class) 表示进入同步代码前要获得 当前 **class** 的锁
 
 总结：给Class加锁和给对象加锁
+
+
+
+**Sybchornized关键字底层原理**
+
+JVM 层面
+
+1. *同步代码块*
+
+```
+synchronized 同步语句块的实现使⽤的是 monitorenter 和 monitorexit 指令，其中
+monitorenter 指令指向同步代码块的开始位置， monitorexit 指令则指明同步代码块的结束位
+置。
+当执⾏ monitorenter 指令时，线程试图获取锁也就是获取 对象监视器 monitor 的持有权。（每个对
+象中都内置了⼀个 ObjectMonitor 对象。）如果锁的计数器为 0 则表示锁可以被获取，获取
+后将锁计数器设为 1 也就是加 1。
+在执⾏ monitorexit 指令后，将锁计数器设为 0，表明锁被释放。如果获取对象锁失败，那当前
+线程就要阻塞等待，直到锁被另外⼀个线程释放为⽌。
+```
+
+2. 同步方法
+
+```
+JVM 通过该
+ACC_SYNCHRONIZED 访问标志来辨别⼀个⽅法是否声明为同步⽅法，从⽽执⾏相应的同步调
+⽤。
+```
+
+不过两者的本质都是对对象监视器 monitor 的获取
 
 
 
@@ -1476,6 +1567,8 @@ CountDownLatch 的作用就是 允许 count 个线程阻塞在一个地方，直
 
  **ThreadLocal 了解么** 
 
+给每个线程一个值，避免线程安全问题
+
  每⼀个线程都有自己的专属本地变量。主要是将线程和线程的私有变成做一个映射，各个线程之间互不影响。高并发的情况下可以实现无状态调用。特别适合各个线程依赖不同变量完成操作的情况。就是空间换时间，各自用各自的变量，自然就不用处理线程安全的问题。
 
  ThrealLocal 类中可以通过 Thread.currentThread() 获取到当前线程对象后，直接通过 getMap(Thread t) 可以访问到该线程的 ThreadLocalMap 对象。 
@@ -1483,6 +1576,9 @@ CountDownLatch 的作用就是 允许 count 个线程阻塞在一个地方，直
 
 
  **ThreadLocal 原理** 
+
+Thread 类中有一个threadLocals和inheritableThreadLocals，他们都是它们都是 ThreadLocalMap类型的，默认情况下这两个变量都
+是 null，只有当前线程调⽤ ThreadLocal 类的 set 或 get ⽅法时才创建它们，实际上调⽤这两个⽅法的时候，我们调⽤的是 ThreadLocalMap 类对应的 get() 、 set() ⽅法。
 
  最终的变量是放在了当前线程的 ThreadLocalMap 中 
 
@@ -1568,11 +1664,15 @@ jdk1.8取消了方法区，用元空间代替。
 
 **程序计数器**
 
-记录着当前线程正在执行的字节码的地址，线程切换后根据程序计数器能恢复到正确的执行位置。
+记录着当前线程正在执行的字节码的地址
+
+* 通过修改程序计数器实现流程控制
+
+* 线程切换后根据程序计数器能恢复到正确的执行位置。
 
 **虚拟机栈**
 
-保存着栈帧，描述方法执行的内存模型。每一次函数调用都会有一个对应的栈帧被压入 Java 栈，每一个函数调用结束后，都会有一个栈帧被弹出。
+先进后出，模仿方法的调用，保存着栈帧，描述方法执行的内存模型。每一次函数调用都会有一个对应的栈帧被压入 Java 栈，每一个函数调用结束后，都会有一个栈帧被弹出。
 
 *栈帧*：存放着局部变量表、操作数（operand）栈、动态链接、方法正常退出或者异常退出的定义等 。 
 
