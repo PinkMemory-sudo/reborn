@@ -1,0 +1,6 @@
+Reactor模式
+IO 多路复用 select，poll，epoll 
+NIO
+Redis做缓存
+Redis 做分布式锁
+5种网络 IO 模型
