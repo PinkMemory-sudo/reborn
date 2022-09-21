@@ -408,8 +408,6 @@ Pub/SUb
 
 
 
-# Lettuce与Jedis的区别
-
 
 
 # Redis Cluster
@@ -421,6 +419,334 @@ Pub/SUb
 RedisClusterConnection, an extension to RedisConnection, handles the communication with the Redis Cluster and translates errors into the Spring DAO exception hierarchy。
 
 RedisClusterConnection instances are created with the RedisConnectionFactory, which has to be set up with the associated RedisClusterConfiguration
+
+
+
+
+
+
+
+# SpringDataRedis
+
+https://www.cnblogs.com/mzdljgz/p/14258419.html
+
+## https://www.cnblogs.com/wencg/p/13671769.html
+
+配置文件
+
+连接 Redis 的客户端：在 SpringBoot2.x 之后, 原来使用的 Jedis 被替换成了 lettuce
+
+**Lettuce与Jedis的区别**
+
+jedis: 采用直连, 多个线程操作的话, 是不安全的, 如果想要避免不安全, 使用 jedis pool 连接池 它更像BIO
+lettuce: 采用netty 实例可以多个线程中进行共享, 不存在线程不安全的情况, 可以减少线程数据 它更像NIO
+
+RedisTemplate，StringRedisTemplate
+
+序列化和反序列化
+
+https://www.cnblogs.com/wencg/p/13671769.html
+
+默认 JDK 序列化，不可读，改成Jackson
+
+**为什么要修改序列化**？
+
+```
+KeySerializer
+ValueSerializer
+HashKeySerializer
+HashValueSerializer
+```
+
+
+
+SpringDataRedis提供如下几种序列化器
+
+StringRedisSerializer: 简单的字符串序列化
+GenericToStringSerializer: 可以将任何对象泛化为字符串并序列化
+Jackson2JsonRedisSerializer: 序列化对象为json字符串
+GenericJackson2JsonRedisSerializer: 功能同上,但是更容易反序列化
+OxmSerializer: 序列化对象为xml字符串
+JdkSerializationRedisSerializer: 序列化对象为二进制数据
+
+
+
+**SpringData Redis做了哪些封装**
+
+RedisTemplate
+
+RedisTemplate 对Redis 的操作进行了分类,进行连接 Redis 与序列化
+
+RedisTemplate是线程安全的，开箱即用，可以在多个实例中重复使用
+
+| 方法        | 描述       |
+| ----------- | ---------- |
+| opsForValue | 字符串操作 |
+| opsForList  |            |
+| opsForSet   |            |
+| opsForHash  |            |
+| opsForZSet  |            |
+
+bound是什么
+
+execute一个连接中执行多个命令
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Redis 做缓存
+
+
+
+https://www.cnblogs.com/ganxiang/p/16146384.html
+
+https://www.cnblogs.com/kikochz/p/12776273.html
+
+https://qkongtao.cn/?p=1196
+
+KeyGenerator
+
+CacheManager
+
+
+
+## 使用
+
+1. 配好 Redis 和 RedisTemplate
+
+2. 依赖
+
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-cache</artifactId>
+</dependency>
+```
+
+3. 注解开启缓存
+
+@EnableCaching
+
+4. 配置类，设置序列化器和过期时间
+
+```java
+@Bean
+    public CacheManager cacheManager(RedisConnectionFactory factory) {
+        RedisSerializer<String> redisSerializer = new StringRedisSerializer();
+        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
+
+        //解决查询缓存转换异常的问题
+        ObjectMapper om = new ObjectMapper();
+        om.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+        om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+        jackson2JsonRedisSerializer.setObjectMapper(om);
+
+        // 配置序列化（解决乱码的问题）,过期时间600秒
+        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofSeconds(600))
+                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(redisSerializer))
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jackson2JsonRedisSerializer))
+                .disableCachingNullValues();
+
+        RedisCacheManager cacheManager = RedisCacheManager.builder(factory)
+                .cacheDefaults(config)
+                .build();
+        return cacheManager;
+    }
+```
+
+
+
+5. 方法上加注解
+
+@Cachable，@CachePut，@CacheEvict
+
+@Cachable：先查询缓存中有没有，没有的话再执行方法，然后将方法的执行结果放入缓存
+
+@CachePut：先执行方法，在将方法的执行结果写入缓存
+
+@CacheEvict：删除缓存
+
+
+
+核心组件
+
+
+
+
+
+实现原理
+
+基于 SpringAOP
+
+
+
+Spring Boot 会按照如下顺序，自动判断使用哪种缓存方案，创建对应的 CacheManager 缓存管理器。
+
+Spring Data 使用 Redis 作为缓存的方案的时候，底层使用的是 Spring Data 提供的 RedisTemplate 
+
+CacheManager,KeyGenerator
+
+
+
+本地缓存与分布式缓存
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
