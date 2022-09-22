@@ -1264,11 +1264,106 @@ UPDATE student SET ... # 排他锁
 
 
 
+**查看查询计划**
+
+```MySQL
+EXPLAIN
+...
+```
+
+
+
+|                |                                                              |
+| -------------- | ------------------------------------------------------------ |
+| select_type    | 查询的类型：简单查询，子查询，最外层查询...                  |
+| table          | 表名                                                         |
+| type           | ALL：全数据表扫描，index：全索引扫描，range：对索引进行范围查找，index_merge：使用多列索引 |
+| prossiable_key | 可能用到的索引                                               |
+| key            | 真实使用的索引                                               |
+| key_len        | 索引的字节长度                                               |
+| ref            |                                                              |
+| rows           | 预估查询需要读取的行数                                       |
+| extra          |                                                              |
+
+
+
+* 看 type，key，prossiable_key,rows，是否用到索引，数据量大的建索引
+
+
+
+SQL 优化
+
+
+
+慢查询日志
+
+
+
+**子查询的查询顺序**
+
+
+
+**exists子句**
+
+
+
+**标准的 SQL 执行顺序**
+
+```
+select
+from
+join on
+where
+group by
+with
+hiving
+order by
+limit
+```
+
+
+
+临时表
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## **优化**
 
 
 
-**offset 和 limit 分页**
+**offset 和 limit 分页的效率问题**
 
 *OFFSET 和 LIMIT 有什么问题*
 
@@ -1296,6 +1391,10 @@ join子查询
 2. join子查询
 
 这样不用再对前offset个进行回表查询
+
+**但是**
+
+这么大的数据量一页一页去看，看到什么时候？关键还是增加查询条件
 
 
 
