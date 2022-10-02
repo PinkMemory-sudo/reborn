@@ -346,6 +346,38 @@ null值会占用更多的资源并且会使索引失效
 
 
 
+**如何创建索引**
+
+1. 创建表的时候创建
+
+`索引类型 索引名(索引字段)`
+
+```MySQL
+CREATE TABLE test1(
+id INT NOT NULL,
+name varchar(30) NOT NULL,
+UNIQUE INDEX uk_idx_id(id)
+);
+```
+
+2. 新增/修改索引
+
+```mysql
+ALTER TABLE table_name ADD [UNIQUE | FULLTEXT | SPATIAL] [INDEX | KEY]
+[index_name] (col_name[length],...) [ASC | DESC]
+```
+
+或者
+
+```mysql
+CREATE [UNIQUE | FULLTEXT | SPATIAL] INDEX index_name
+ON table_name (col_name[length],...) [ASC | DESC]
+```
+
+
+
+
+
 **B树和B+树的区别**
 
 而B+树的非叶子节点只存储key不存储data，这样每个节点中能存储更多key，降低树的高度，减少IO
