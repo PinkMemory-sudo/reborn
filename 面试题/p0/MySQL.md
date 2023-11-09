@@ -462,8 +462,6 @@ ON table_name (col_name[length],...) [ASC | DESC]
 
 
 
-
-
 # 事务
 
 
@@ -1162,6 +1160,8 @@ innodb对于⾏的查询使⽤next-key lock 2. Next-locking keying为了解决Ph
 **MySQL的死锁**
 
 
+
+## 快照读和当前读
 
 # MVCC
 
