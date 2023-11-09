@@ -775,6 +775,36 @@ AOF文件时追加的，文件会越来越大。rewite压缩会对文件中的�
 
 
 
+搭建方式有两种
+
+1. 通过配置文件
+2. 登录redis-cli输入命令(这种方式服务Redis重启后就会失效)
+
+参考：https://www.cnblogs.com/enjoyitlife/p/11984520.html
+
+
+
+```xml
+bind 127.0.0.1 -::1
+```
+
+默认启动了保护模式,只能本机通过回环地址`127.0.0.1`访问`redis`服务
+
+
+
+```jsx
+docker run -p 6391:6379 --name redis6391 \
+-v /root/redis/redis.conf:/etc/redis/redis.conf \
+--privileged=true \
+-d 3c3da61c4be0 redis-server /etc/redis/redis.conf
+```
+
+
+
+  docker run -d --name redis90 -p 6390:6379 -v /root/redis.conf:/etc/redis/redis.conf  redis:6.2.6 /etc/redis/redis.conf
+
+docker run -d --name redis92  --privileged=true -p 6392:6379 -v /root/redis/redis.conf:/etc/redis/redis.conf 3c3da61c4be0 redis-server /etc/redis/redis.conf
+
 * 什么是主从复制
 
 * 为什么使用主从复制，优势是什么
@@ -796,21 +826,19 @@ AOF文件时追加的，文件会越来越大。rewite压缩会对文件中的�
 
 **主从复制原理**
 
-从服务器连接到主服务器后，主服务器会对数据进行持久化生成rdb文件交给从服务器(全量复制)
+1. 从服务器**连接到主服务器后**，发送**同步数据**的命令
+2. 主服务器将当前数据持久化到rdb中发送给从服务器，从服务器读取到数据库中 
+3. 每次主服务器进行写操作后，将数据同步到从服务器中
 
-从服务器在进行添加操作后会将数据同步到从服务器(增量复制)
+即连接时从服务器获得全量同步数据，之后主服务器发送给从服务器增量数据
 
 
+
+**主从模式不要用树状结构，用链式结构。**
 
 一个从服务器下可以挂它自己的从服务器，主服务器挂掉后可以通过命令(slaveof no one)让该服务器做住服务器
 
-主服务器只会同步到一个从服务器中，然后由该从服务器同步到其他从服务器
-
-
-
-主从模式来保证在主节点失败时仍然可用，一个主节点发生问题时会提升它的从节点(副本)作为新的主节点
-
-旧主节点重启后悔变成新主节点的从节点
+主服务器只会同步到一个从服务器中，然后由该从服务器同步到其他从服务器。
 
 
 
@@ -828,8 +856,6 @@ sentinel monitor mymaster 主节点ip 主节点端口 2
 
 
 
-
-
 选举规则：
 
 * 优先级(redis.conf的 xxx-priority)
@@ -838,7 +864,7 @@ sentinel monitor mymaster 主节点ip 主节点端口 2
 
 
 
-主从模式不要用树状结构，用链式结构。
+
 
 
 
@@ -889,11 +915,7 @@ slaveof  主节点host 主节点port将当前节点设置为指定节点的从�
 
 ## **主从复制原理**
 
-1. 从服务器**连接到主服务器后**，发送**同步数据**的命令
-2. 主服务器将当前数据持久化到rdb中发送给从服务器，从服务器读取到数据库中 
-3. 每次主服务器进行写操作后，将数据同步到从服务器中
 
-即连接时从服务器获得全量同步数据，之后主服务器发送给从服务器增量数据
 
 **从服务器出现故障**
 

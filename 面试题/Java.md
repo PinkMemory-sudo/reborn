@@ -148,7 +148,7 @@ finalize()
 
 **Java 的基础类型和字节大小**
 
-boolean 	    8位
+boolean 	    1位
 
 byte			    8位
 
@@ -235,6 +235,18 @@ labelName:
 **面向对象和面向过程的区别:**
 
 面向过程执行效率更高
+
+
+
+**对象实例化的顺序**
+
+* 静态属性静态代码块
+* 普通属性，普通代码块
+* 构造方法
+
+
+
+**static属性为什么不会被序列化**
 
 
 
@@ -421,6 +433,26 @@ String.join(delimiter,elements)
 * String.valueOf(null) 返回字符串"null"
 * ""+null 返回字符串null
 * null.toString NPE
+
+
+
+**String为什么要设计成不可变**
+
+* 字符串常量池：相同字符串可以共用，谁也不能改变
+
+
+
+**String为什么要从char[]变成byte[]**
+
+节省占用的内存
+
+字符占两个字节，JDK9后会先判断用不用一个字节，降低内存占用，减少GC，不过中文的字符串用的utf16占两个字节，所以区别不大
+
+
+
+**String存在哪**
+
+String对象存在堆中，String字符串存在常量池
 
 
 
@@ -752,6 +784,16 @@ Java中  String、Byte、Char、Date 等大量的类都实现了Compareable接�
 
 
 
+**边循环边删除的问题**
+
+* for循环，删除后元素前移
+* 增强for，ConcurrentModificationException
+* 使用迭代器的remove
+
+
+
+
+
 ## Set
 
 
@@ -918,6 +960,67 @@ TreeSet 底层使用红黑树，能够按照添加元素的顺序进行遍历，
 
 # 多线程
 
+https://mp.weixin.qq.com/s/3istnkJ3MMYQnvbtTsdxmA
+
+Runnable
+
+Callable
+
+Volatile
+
+Synchronized
+
+AQS
+
+CAS
+
+线程池
+
+CyclicBarrier
+
+CountDownLatch
+
+Volatile与CAS结合保证原子性
+
+CopyOnWriteArrayList
+
+ConcurrentModificationException
+
+dump文件
+
+1. 获取到线程的pid，可以通过使用jps命令，在Linux环境下还可以使用ps -ef | grep java
+2. 打印线程堆栈，可以通过使用jstack pid命令，在Linux环境下还可以使用kill -3 pid
+
+Thread.sleep(0)的作用是什么：*触发操作系统立刻重新进行一次CPU竞争*
+
+ReadWriteLock
+
+读写共享，写锁独占，读读不互斥，读写，写读，写写才互斥
+
+CopyOnWriteArrayList
+
+就是平时查询的时候，都不需要加锁，随便访问，只有在更新的时候，才会从原来的数据复制一个副本出来，然后修改这个副本，最后把原数据替换成当前的副本。修改操作的同时，读操作不会被阻塞，而是继续读取旧的数据。
+
+**UncaughtExceptionHandler**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 **进程和线程的区别**
@@ -934,6 +1037,14 @@ TreeSet 底层使用红黑树，能够按照添加元素的顺序进行遍历，
 并发是一段时间内执行多个任务
 
 并行是同一时间内执行多个任务
+
+
+
+**如何停止正在运行的线程**
+
+* stop方法，已经等废弃，可能会造成数据不一致问题
+* interrupt方法，标记当前线程状态，并不会停止线程
+* 
 
 
 
@@ -1154,6 +1265,12 @@ Java的并发采用的是共享内存模型，整个通信过程对我i们来说
 
 
 
+**线程间的通信**
+
+
+
+
+
 ## 线程池
 
 
@@ -1266,10 +1383,7 @@ AQS 核⼼思想是，如果被请求的共享资源空闲，则将当前请求�
 
 独占，如 ReentrantLock	
 
-共享，如CountDownLatch 、 Semaphore 、 CountDownLatch 、 CyclicBarrier 、 ReadWriteLock。
-
-⾃定义同步器在实现时只需要实现共享资源state 的获取与释放⽅式即可，⾄于具体线程等待队列的维护（如获取资源失败⼊队/唤醒出队
-等），AQS 已经在顶层实现好了。
+共享，如、 Semaphore 、 CountDownLatch 、 CyclicBarrier 、 ReadWriteLock。
 
 
 
@@ -1305,6 +1419,88 @@ Exchanger
 * CountDownLatch是不能够重用的，而CyclicBarrier是可以重用的。CountDownLatch的计数器只能使用一次。而CyclicBarrier的计数器可以使用reset() 方法重置。所以CyclicBarrier能处理更为复杂的业务场景，比如如果计算发生错误，可以重置计数器，并让线程们重新执行一次。
 * CyclicBarrier还提供其他有用的方法，比如getNumberWaiting方法可以获得CyclicBarrier阻塞的线程数量。isBroken方法用来知道阻塞的线程是否被中断。如果被中断返回true，否则返回false。
 * Semaphore其实和锁有点类似，它一般用于控制对某组资源的访问权限。
+
+
+
+```Java
+public class CountDownLatchTest {
+    CountDownLatch downLatch = new CountDownLatch(3);
+
+    public void test() throws InterruptedException {
+        Runnable task = () -> {
+            System.out.println("1");
+            downLatch.countDown();
+            System.out.println(2);
+        };
+        new Thread(task).start();
+        new Thread(task).start();
+        new Thread(task).start();
+        downLatch.await();
+        System.out.println("123");
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        new CountDownLatchTest().test();
+    }
+}
+
+public class CyclicBarrierTest {
+    CyclicBarrier barrier = new CyclicBarrier(3);
+
+    Runnable task = ()->{
+        System.out.println("1");
+        try {
+            barrier.await();
+        } catch (InterruptedException | BrokenBarrierException e) {
+            e.printStackTrace();
+        }
+        System.out.println(2);
+    };
+
+    public void test(){
+        new Thread(task).start();
+        new Thread(task).start();
+        new Thread(task).start();
+    }
+    public static void main(String[] args) {
+        new CyclicBarrierTest().test();
+    }
+}
+
+public class SemaphoreTest {
+    Semaphore semaphore = new Semaphore(5);
+
+    public void test(){
+        Runnable task = ()->{
+            try {
+                semaphore.acquire();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.println("HELLO");
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            semaphore.release();
+        };
+        new Thread(task).start();
+        new Thread(task).start();
+        new Thread(task).start();
+        new Thread(task).start();
+        new Thread(task).start();
+        new Thread(task).start();
+        new Thread(task).start();
+    }
+
+    public static void main(String[] args) {
+        new SemaphoreTest().test();
+    }
+}
+```
+
+
 
 
 
@@ -1389,15 +1585,9 @@ ACC_SYNCHRONIZED 访问标志来辨别⼀个⽅法是否声明为同步⽅法，
 
 
 
-**为什么不建议使用String作为锁对象**
-
-String 重写了equals 方法。所以不同对象但是值相等的时候在equals比较也会返回true导致锁不住
-
-
-
 **为什么Java 早期版本中， synchronized 属于 重量级锁，效率低下**
 
-因为监视器锁(monitor)是依赖于底层的操作系统的 Mutex Lock 来实现的，Java 的线程是映 射到操作系统的原生线程之上的。如果要挂起或者唤醒一个线程，都需要操作系统帮忙完成，而 操作系统实现线程之间的切换时需要从用户态转换到内核态，这个状态之间的转换需要相对比􏰀 ⻓的时间，时间成本相对高
+因为监视器锁(monitor)是依赖于底层的操作系统的 Mutex Lock 来实现的，Java 的线程是映 射到操作系统的原生线程之上的。如果要挂起或者唤醒一个线程，都需要操作系统帮忙完成，而 操作系统实现线程之间的切换时需要从用户态转换到内核态，这个状态之间的转换需要相对比⻓的时间，时间成本相对高
 
 
 
@@ -1443,7 +1633,7 @@ JDK1.6 对锁的实现引入了大量的优化，如自旋锁、适应性自旋�
 
 重量级锁：完全阻塞
 
-锁一般不hi降级
+锁不降级
 
 
 
@@ -1502,7 +1692,27 @@ public class Singleton {
 
 
 
+**ReentrantLock怎么实现可重入的**
+
+
+
+**公平锁和非公平锁**
+
+按照线程访问的顺序来获得锁对象
+
+
+
 ## volatile
+
+
+
+轻量级的同步机制，主要的作用是1. 保证变量的可见性，2. 禁止指令重排序
+
+保证可见性：一个线程修改了变量，其它线程可以立马感知到。volatile变量修改时会立马刷新到主内存中，每次都要从内存中重新读取
+
+指令重排序：由于指令重排序的优化，代码的顺序和实际执行的顺序可能会不一致
+
+**缓存一致性协议：**写数据时如果发现其他线程也有这份数据的副本，会发送信号使缓存失效，需要重新从主内存中读取
 
 
 
@@ -1513,13 +1723,6 @@ public class Singleton {
 
 
 **volatile能使一个非原子操作变成一个原子操作吗**
-
-
-
-**volatile提供了什么保证**
-
-* 可见性
-* 一部分有序性
 
 
 
@@ -1547,6 +1750,16 @@ wait，join，yeid，notify
 
 
 
+
+
+## CAS
+
+**什么使CAS**
+
+
+
+
+
 ## CountDownLatch
 
 
@@ -1561,7 +1774,7 @@ CountDownLatch 的作用就是 允许 count 个线程阻塞在一个地方，直
 
 
 
-## JUC
+## **ThreadLocal **
 
 
 
@@ -1592,9 +1805,7 @@ ThreadLocal.ThreadLocalMap.Entry中的key是弱引用的，也即是当某个Thr
 
 
 
-
-
-**原子类**
+## **原子类**
 
 基本类型：AtomicInteger，AtomicLong，AtomicBoolean
 
@@ -1608,7 +1819,17 @@ AtomicStampedReference可以解决ABA问题
 
 
 
-# 使用场景
+## 使用场景
+
+**SynchronizationMap与ConcurrentHashMap的区别**
+
+
+
+**控制线程执行顺序**
+
+join
+
+condition
 
 
 
@@ -1702,6 +1923,10 @@ Java8取消了方法区，而将常量放在了元空间(直接内存)
 
 
 
+**什么时候会站溢出**
+
+
+
 **什么是对象头**
 
 在JVM中需要大量存储对象，存储时为了实现一些额外的功能，需要在对象中添加一些标记字段用于增强对象功能，这些标记字段组成了对象头。
@@ -1720,6 +1945,14 @@ NIO基于通道和缓冲区，堆内保存DirectByteBuffer作为内存的引用�
 
 
 
+**Class的文件结构**
+
+
+
+**类加载过程**
+
+
+
 **创建对象的过程**
 
 1. 类加载检查：检查是否已经被加载过(到方法区中找)，没有的话要执行类加载操作
@@ -1729,6 +1962,35 @@ NIO基于通道和缓冲区，堆内保存DirectByteBuffer作为内存的引用�
 5. 执行init方法：父类变量的初始化、语句块，构造器，子类的变量初始化，代码块，构造器
 
 * 父类>子类，静态>非静态，代码块>构造方法
+
+
+
+**什么是双亲委派模型**
+
+
+
+**为什么需要双亲委派模型**
+
+* 防止类重复加载
+
+
+
+**怎么破坏双亲委派机制**
+
+1. 自定义类加载器，重写findClass方法
+
+
+
+**类加载器的作用**
+
+* 将字节码文件加载到JVM中
+* 创建Class对象
+
+
+
+**为什么使用自定义类加载器**
+
+
 
 
 
@@ -1831,6 +2093,10 @@ Runtime类的freememory()等方法
 
 
 
+**CPU飙升怎么排查**
+
+
+
 # GC
 
 
@@ -1878,6 +2144,21 @@ GC主要是对堆内存进行GC。在JDK1.8之前，堆通常被分成新生代�
 
 
 
+**什么时候回收Class**
+
+* 该类所有的实例都已经被回收，也就是 Java 堆中不存在该类的任何实例。 
+* 加载该类的 ClassLoader 已经被回收。 
+* 该类对应的 java.lang.Class 对象没有在任何地⽅被引⽤，⽆法在任何地⽅通过反射访问该类 的⽅法。 
+
+
+
+**哪些对象可以作为GC Root**
+
+* 栈中引用的对象
+* 常量/静态属性中引用的对象
+
+
+
 **老年代为什么使用标记整理和标记清除，新生代为什么要使用复制算法**
 
 触发Full GC的频率要低，里面保存的对象被GC的可能性小，大对象也保存在老年代中，老年代还需要自己兜底内存，标记清楚和标记整理不会浪费内存，所以使用这两个方法。
@@ -1889,12 +2170,6 @@ GC主要是对堆内存进行GC。在JDK1.8之前，堆通常被分成新生代�
 **一个对象是如何从新生代到老年代的**
 
 
-
-**如何回收Class**
-
-* 该类所有的实例都已经被回收，也就是 Java 堆中不存在该类的任何实例。 
-* 加载该类的 ClassLoader 已经被回收。 
-* 该类对应的 java.lang.Class 对象没有在任何地⽅被引⽤，⽆法在任何地⽅通过反射访问该类 的⽅法。 
 
 
 
@@ -2321,3 +2596,13 @@ SMPT
 
 
 
+**什么是跨域**
+
+从一个域名的网页去访问另一个域名的网页
+
+协议+IP+port
+
+解决方案：
+
+1. Nginx
+2. CORS跨域资源共享，需要在服务端实现，指定允许哪些域名访问哪些资源

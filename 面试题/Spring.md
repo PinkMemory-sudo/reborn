@@ -14,17 +14,13 @@ IoC(Inverse of Control:控制反转)是一种设计思想，就是将原本在�
 
 
 
-工厂模式
-
-
-
-简单工厂
-
-
-
 **什么是IOC容器**
 
 IoC 容器是 Spring 用来实现 IoC 的载体， IoC 容器实际上就是个Map（key，value）,Map 中存放的是各种对象
+
+
+
+**IOC容器初始化过程**
 
 
 
@@ -42,6 +38,24 @@ SpringBoot都是通过注解注入，Spring有构造注入，setter注入
 
 
 
+
+
+- **工厂设计模式** : Spring使用工厂模式通过 `BeanFactory`、`ApplicationContext` 创建 bean 对象。
+- **代理设计模式** : Spring AOP 功能的实现。
+- **模板模式**：jdbcTemplate，MongoTemplate
+- **单例设计模式** : Spring 中的 Bean 默认都是单例的。
+- **包装器设计模式** : 我们的项目需要连接多个数据库，而且不同的客户在每次访问中根据需要会去访问不同的数据库。这种模式让我们可以根据客户的需求能够动态切换不同的数据源。
+- **观察者模式:** Spring 事件驱动模型就是观察者模式很经典的一个应用。
+- **适配器模式** :Spring AOP 的增强或通知(Advice)使用到了适配器模式、spring MVC 中也是用到了适配器模式适配`Controller`。
+
+
+
+**BeanFactory与FactoryBean**
+
+每个Bean对应一个FactoryBean
+
+
+
 **bean的作用域**
 
 | 作用域         | 描述                                                    |
@@ -54,30 +68,42 @@ SpringBoot都是通过注解注入，Spring有构造注入，setter注入
 
 
 
-**单例bean线程安全问题**
+**Bean生命周期**
+
+大流程：实例化，依赖注入，初始化，销毁
+
+扩展点：BeanNameAware，BeanFactoryAware，BeanPostProcesser
+
+
+
+实例化
+
+创建Bean
+
+通过反射调用setter方法对属性进行赋值
+
+Aware：如果实现类BeanNameAware，设置Bean的Name，如果实现了BeanFactory，就设置Factory
+
+PostProcessor：
+
+InitializingBean：
+
+PostProcessor：
+
+放入Map中使用
+
+容器关闭时DisposableBean：
+
+
+
+
+
+**单例bean是否有线程安全问题，怎么保证线程安全**
 
 * bean中尽量不要成员变量
 * 使用ThreadLocal
 
 
-
-**Spring中的bean生命周期**
-
-[参考](https://www.cnblogs.com/javazhiyin/p/10905294.html)
-
-[参考](https://snailclimb.gitee.io/javaguide-interview/#/./docs/e-1spring)
-
-* 容器找到配置文件中对Bean的定义
-
-* 利用Java的反射创建一个Bean实例
-
-* 如果Bean实现了BeanNameAware,调用setBeanName设置Bean的名字
-
-* 如果Bean实现了BeanClassLoaderAware，调用setBeanClassLoader()方法，传入 ClassLoader对象的实例
-
-* 实现了*.Aware接口，就调用响应的方法
-
-  
 
 **SpringBean是线程安全的吗**
 
@@ -98,7 +124,7 @@ SpringBoot都是通过注解注入，Spring有构造注入，setter注入
 
 **什么是AOP**
 
-面向切面编程，通过预编译和运行时动态代理来实现在不修改源码的情况下，给程序统一添加功能的技术。可以将非业务代码统一提取出来处理(例如事务处理、日志管理、权限控制等)封装起来，做横向的扩展。
+面向切面编程，通过预编译和运行时动态代理来实现在不修改源码的情况下，给程序统一添加功能的技术。可以将非业务代码统一提取出来处理(例如事务处理、日志管理、权限控制等)封装起来，做横向的扩展，跟业务代码分离，减少重复代码和耦合度。
 
 
 
@@ -118,13 +144,15 @@ SpringBoot都是通过注解注入，Spring有构造注入，setter注入
 
 Spring AOP就是基于动态代理的，如果要代理的对象，实现了某个接口，那么Spring AOP会使 用JDK Proxy，去创建代理对象，而对于没有实现接口的对象，就无法使用 JDK Proxy 去进行代 理了，这时候Spring AOP会使用Cglib。
 
+我们配置了切面后，Spring动态生成代理类，后续我们使用到的对象就是动态代理类的实例。
+
 
 
 **静态代理和动态代理的区别**
 
-静态：由程序员创建代理类或特定工具自动生成源代码再对其编译。在程序运行前代理类的.class文件就已经存在了。
+静态：要和代理的对象实现一样的接口，编写代理类，代理类在编译时生成，将增强织入到字节码文件中。
 
-动态：在程序运行时运用反射机制动态创建而成
+动态：代理类在程序运行时运用反射机临时创建
 
 
 
@@ -145,7 +173,7 @@ Spring AOP 已经集成了 AspectJ，AspectJ 相比于 Spring AOP 功能更加�
 
 
 
-**切点的定义**
+**SpringAOP使用**
 
 1. 使用表达式(* 权限定类名.方法名(..))
 2. @annotation 有某注解的
@@ -162,14 +190,114 @@ Spring AOP 已经集成了 AspectJ，AspectJ 相比于 Spring AOP 功能更加�
 
 
 
-## 设计模式
+**代理失效**
 
-- **工厂设计模式** : Spring使用工厂模式通过 `BeanFactory`、`ApplicationContext` 创建 bean 对象。
-- **代理设计模式** : Spring AOP 功能的实现。
-- **单例设计模式** : Spring 中的 Bean 默认都是单例的。
-- **包装器设计模式** : 我们的项目需要连接多个数据库，而且不同的客户在每次访问中根据需要会去访问不同的数据库。这种模式让我们可以根据客户的需求能够动态切换不同的数据源。
-- **观察者模式:** Spring 事件驱动模型就是观察者模式很经典的一个应用。
-- **适配器模式** :Spring AOP 的增强或通知(Advice)使用到了适配器模式、spring MVC 中也是用到了适配器模式适配`Controller`。
+
+
+
+
+## 依赖注入
+
+把对象依赖的属性注入到对象中，有两种方式：构造器注入和属性注入
+
+
+
+**怎么解决循环依赖问题**
+
+对于构造器注入，Spring处理不了，对于属性注入，Spring是通过三级缓存来实现的。
+
+
+
+
+
+
+
+## 事务
+
+
+
+**Spring的事务传播机制**
+
+Service接口方法可能会在内部调用其它的Service接口方法以共同完成一个完整的业务操作，因此就会产生服务接口方法嵌套调用的情况， Spring通过事务传播行为控制当前的事务如何传播到被嵌套调用的目标服务接口方法中。即当前的事务(调用的方法)遇到了另一个事务(方法调用了另一个方法)，另一个事务怎么办。
+
+分为支持当前事务和不支持当前事务
+
+| 传播行为                  | 描述                                                         |
+| ------------------------- | ------------------------------------------------------------ |
+| REQUIRED                  | 默认的，如果当前没有事务，就新建一个事务，如果有，就加入当前事务 |
+| PROPAGATION_SUPPORTS      | 以当前事务为准，当前没有事务，就以非事务的方式运行           |
+| PROPAGATION_MANDATORY     | 以当前事务为准，当前没有事务，就抛出异常                     |
+| PROPAGATION_REQUIRES_NEW  | 新建事务，把当前事务挂起                                     |
+| PROPAGATION_NOT_SUPPORTED | 不要事务，把当前事务挂起                                     |
+| PROPAGATION_NEVER         | 非事务方式运行，当前存在事务时抛出异常                       |
+| NESTED                    | 与REQUIRED类似，只不过它是嵌套的事务，嵌套事务出错是不会全部回滚 |
+
+
+
+**@Transactional**
+
+加上`rollbackFor=Exception.class`,可以让事物在遇到非运行时异常时也回滚
+
+
+
+**事务失效的原因**
+
+1. @Transactional没有放在public方法上，Spring Framework 默认使用 AOP 代理，在代码运行时生成一个代理对象来执行事务，而直接通过service调用方法，执行的不是代理对象，所以索引失效了。
+2. **在同一个类之中，方法互相调用，切面无效**
+
+总结一句话，**调用了自身而没有经过 Spring 的代理类**
+
+解决方案：事务代码用一个类单独去处理
+
+2. 异常被吃掉了
+3. 数据库不支持事务
+4. bean没有注入
+
+
+
+
+
+## 热点
+
+**Spring中的bean生命周期**
+
+[参考](https://www.cnblogs.com/javazhiyin/p/10905294.html)
+
+[参考](https://snailclimb.gitee.io/javaguide-interview/#/./docs/e-1spring)
+
+* 容器找到配置文件中对Bean的定义
+
+* 利用Java的反射创建一个Bean实例
+
+* 如果Bean实现了BeanNameAware,调用setBeanName设置Bean的名字
+
+* 如果Bean实现了BeanClassLoaderAware，调用setBeanClassLoader()方法，传入 ClassLoader对象的实例
+
+* 实现了*.Aware接口，就调用响应的方法
+
+
+
+
+**BeanFactory和FactoryBean的区别**
+
+BeanFactory是管理Bean的容器
+
+
+
+**@Autowired和@Resource的区别**
+
+@Autowired是Spring的注解，默认按照类型进行注入，有多个实例时，可以使用@Qualifier执行名字
+
+@Resource是Java的注解，默认找名字进行注入
+
+
+
+**@Async有什么要注意的**
+
+原理：代理模式，使用新线程去执行方法
+
+1. 最好配置一个线程池，否则使用默认的SimpleAsyncTaskExecutor，每次都会创建一个线程
+2. 调用本类的方法是不会起作用的，因为绕过了代理
 
 
 
@@ -189,16 +317,6 @@ C表示接收请求调用M的处理器
 
 
 
-**用到了哪些设计模式**
-
-* 工厂模式
-* 代理模式
-* 单例模式
-* 观察者模式
-* 适配器模式
-
-
-
 **工作流程**
 
 1. 发送请求到**DispatchServlet**，DispatchServlet调用**HandlerMapping**通过url找到对应的处理器及拦截器生成执行链返回给DispatchServlet
@@ -213,6 +331,12 @@ C表示接收请求调用M的处理器
 是单例模式，这样在高并发的情况下等节约资源。
 
 如果控制器内定义了很多属性可能会出现竞争问题，做法是不要在控制器中定义成员变量
+
+
+
+**拦截器和过滤器的区别**
+
+
 
 
 
@@ -238,6 +362,21 @@ Springboot是一个微服务框架，简化创建Spring的配置，springboot提
 
 **自动配置原理**
 
+自动配置：自动将一些Bean注入到Spring容器
+
+**@SpringBootApplication**由三个注解组成：@EnableAutoConfiguration，@ComponentScan，SpringBootConfiguration组成
+
+```java
+@SpringBootConfiguration //标注该类为配置类
+@EnableAutoConfiguration //启动自动配置功能，Spring 中有很多以 Enable 开头的注解，其作用就是借助 @Import 来收集并注册特定场景相关的Bean ，并加载到 IOC 容器。
+@ComponentScan // 扫描
+```
+
+```java
+遍历整个ClassLoader中所有jar包下spring.factories文件。
+spring.factories里面保存着springboot的默认提供的自动配置类
+```
+
 
 
 配置文件优先级
@@ -249,6 +388,12 @@ Springboot是一个微服务框架，简化创建Spring的配置，springboot提
 bootstrap.yml用来加载远程配置文件，优先于application，一般在SpringCloudConfig或者Nacos中用到。
 
 bootstrap主要用于从额外的资源来加载配置信息，
+
+
+
+**@Value原理**
+
+
 
 
 
@@ -919,6 +1064,18 @@ SpringMVC提供了一个web开发的框架
 
 **Spring怎么解决循环依赖的**
 
+Spring有两种依赖注入方式：构造器注入和属性注入
+
+对于构造器注入的，Spring处理不了
+
+对于属性注入的通过三级缓存来解决(单例模式下)
+
+完成了初始化的Bean的映射
+
+完成了实例化，未完成初始化的Bean的映射
+
+单例对象工厂的映射，Bean实例化后加入
+
 
 
 
@@ -1130,45 +1287,6 @@ public class FirstFilter implements Filter {
 
 
 
-## 事务
-
-
-
-**Spring的事务传播机制**
-
-Service接口方法可能会在内部调用其它的Service接口方法以共同完成一个完整的业务操作，因此就会产生服务接口方法嵌套调用的情况， Spring通过事务传播行为控制当前的事务如何传播到被嵌套调用的目标服务接口方法中。即当前的事务(调用的方法)遇到了另一个事务(方法调用了另一个方法)，另一个事务怎么办。
-
-分为支持当前事务和不支持当前事务
-
-| 传播行为                  | 描述                                                         |
-| ------------------------- | ------------------------------------------------------------ |
-| REQUIRED                  | 默认的，如果当前没有事务，就新建一个事务，如果有，就加入当前事务 |
-| PROPAGATION_SUPPORTS      | 以当前事务为准，当前没有事务，就以非事务的方式运行           |
-| PROPAGATION_MANDATORY     | 以当前事务为准，当前没有事务，就抛出异常                     |
-| PROPAGATION_REQUIRES_NEW  | 新建事务，把当前事务挂起                                     |
-| PROPAGATION_NOT_SUPPORTED | 不要事务，把当前事务挂起                                     |
-| PROPAGATION_NEVER         | 非事务方式运行，当前存在事务时抛出异常                       |
-| NESTED                    | 与REQUIRED类似，只不过它是嵌套的事务，嵌套事务出错是不会全部回滚 |
-
-
-
-**@Transactional**
-
-加上`rollbackFor=Exception.class`,可以让事物在遇到非运行时异常时也回滚
-
-
-
-**事务失效的原因**
-
-1. @Transactional没有放在public方法上，Spring Framework 默认使用 AOP 代理，在代码运行时生成一个代理对象来执行事务，而直接通过service调用方法，执行的不是代理对象，所以索引失效了。
-2. **在同一个类之中，方法互相调用，切面无效**
-
-总结一句话，**调用了自身而没有经过 Spring 的代理类**
-
-解决方案：事务代码用一个类单独去处理
-
-2. 异常被吃掉了
-
 
 
 ## SpringMVC
@@ -1299,7 +1417,13 @@ Oauth2中后台token是存在服务JVM内存中，如果服务崩了的话，tok
 
 
 
-**Spring怎么解决循环依赖的**
+**Spring怎么解决循环依赖的，哪些是解决不了的 **
+
+
+
+
+
+# Cloud
 
 
 
