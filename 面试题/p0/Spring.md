@@ -1,5 +1,3 @@
-
-
 # Spring
 
 
@@ -502,7 +500,17 @@ Service接口方法可能会在内部调用其它的Service接口方法以共同
 
 **事务失效的原因**
 
-1. @Transactional加在了方法上，Spring Framework 默认使用 AOP 代理，在代码运行时生成一个代理对象来执行事务，而直接通过service调用方法，执行的不是代理对象，所以索引失效了。
+1. @Transactional加在了方法上，Spring Framework 默认使用 AOP 代理，在代码运行时生成一个代理对象来执行事务，而直接通过service调用方法，执行的不是代理对象，所以事物失效了。
+
+2. java的访问权限主要有四种：private、default、protected、public，它们的权限从左到右，依次变大。
+
+   如果事务方法的访问权限不是定义成public，这样会导致事务失效，因为spring要求被代理方法必须是`public`的。
+
+3. 方法用final修饰，如果某个方法用final修饰了，那么在它的JDK代理类中，就无法重写该方法，而添加事务功能
+
+4. 对象没有被spring管理
+
+5. **表不支持事务**：如果MySQL使用的存储引擎是myisam，这样的话是不支持事务的。因为myisam存储引擎不支持事务
 
 总结一句话，**调用了自身而没有经过 Spring 的代理类**
 
