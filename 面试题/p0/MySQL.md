@@ -46,8 +46,6 @@ FROM -> ON -> (LEFT/RIGHT) JOIN -> WHERE -> GROUP BY -> HAVING -> SELECT -> DIST
 
 
 
-
-
 **MySQL 的架构**
 
 MySQL分为Server层和存储引擎层

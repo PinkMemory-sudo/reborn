@@ -802,6 +802,12 @@ public class ApiStatAspect {
 
 正确的解决跨域问题的方法时使用CorsFilter过滤器。
 
+@CrossOrigin注解
+
+nginx反向代理接口跨域
+
+
+
 
 
 **CSRF攻击**

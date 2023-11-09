@@ -380,6 +380,10 @@ new String(s.getBytes(),"编码")
 
 
 
+**什么是字符串常量池**
+
+
+
 **String、StringBuilder、StringBuffer 区别**  
 
 String是不可变字符，都会生成一个新对象(会转成StringBuilder，然后append，再toString)，所以在进行大量字符串拼接是会产生许多对象
@@ -704,6 +708,46 @@ AIO 是异步 IO 的缩写，虽然 NIO 在⽹络操作中，提供了⾮阻塞�
 
 
 
+**什么是泛型**
+
+
+
+**类型擦除**
+
+泛型只在编译阶段有效
+
+泛型提供了编译时类型安全检测机制，Java 的泛型是伪泛型，这是因为 Java 在编译期间，所有的泛型信息都会被擦掉，通过反射可以添加不同类型的值
+
+
+
+**泛型类，泛型接口，泛型方法的使用**
+
+```java
+//在实例化泛型类时，必须指定T的具体类型, 可以用它来声明属性，方法的参数和返回值
+public class Generic<T>{ 
+
+    private T key;
+
+    public Generic(T key) { 
+        this.key = key;
+    }
+
+    public T getKey(){ 
+        return key;
+    }
+}
+
+// 泛型接口同泛型类，在实现泛型类时需要为类型参数指定具体的类型
+public interface Generator<T> {
+    T next();
+}
+
+// 可以单独为方法声明泛型(返回值前用<>声明)，而这个类不必是泛型类
+ public static  <T> T getInstance(Class<T> cls) throws InstantiationException, IllegalAccessException {
+        return cls.newInstance();
+    }
+```
+
 
 
 # 容器
@@ -715,12 +759,6 @@ AIO 是异步 IO 的缩写，虽然 NIO 在⽹络操作中，提供了⾮阻塞�
 * List : 存储的元素是有序的、可重复的。 
 * Set : 存储的元素是无序的、不可重复的。
 * Map: 使用键值对(kye-value)存储，可以不能重复，value可以重复
-
-
-
-**类型擦除**
-
-泛型提供了编译时类型安全检测机制，Java 的泛型是伪泛型，这是因为 Java 在编译期间，所有的泛型信息都会被擦掉，通过发射可以添加不同类型的值
 
 
 
@@ -742,9 +780,24 @@ ArrayList需要连续的空间，不够时需要扩容，重新分配空间，Li
 
  **ArrayList 的扩容机制**
 
-默认的初始容量是10(最小)
+默认的初始容量是10(最小)。第一次调用add方法添加元素，先取指定的容量和默认容量中最大的那个进行初始化。之后调用add方法，当容量不够时，调用grow方法进行扩容，新容量等于`oldCapacity + (oldCapacity >> 1)`,也就是就容量的1.5倍，然后判断新容量与需要的容量的大小。
 
-第一次调用add方法添加元素，先取指定的容量和默认容量中最大的那个进行初始化。之后调用add方法，当容量不够时，调用grow方法进行扩容，新容量等于`oldCapacity + (oldCapacity >> 1)`,也就是就容量的1.5倍，然后判断新容量与需要的容量的大小。
+
+
+**边循环边删除的问题**
+
+使用增强for遍历时删除元素会异常ConcurrentModificationException
+
+* for循环，删除后元素前移
+* 使用迭代器的remove
+
+
+
+**Arraylist 与 LinkedList的区别**
+
+1. ArrayList基于动态数组实现；LinkedList基于链表实现。
+2. 对于随机index访问的get和set方法，ArrayList的速度要优于LinkedList。因为ArrayList直接通过数组下标直接找到元素；LinkedList要移动指针遍历每个元素直到找到为止。
+3. 新增和删除元素，LinkedList的速度要优于ArrayList。因为ArrayList在新增和删除元素时，可能扩容和复制数组；LinkedList实例化对象需要时间外，只需要修改指针即可。
 
 
 
@@ -781,14 +834,6 @@ Comparator实现compare方法定义两个对象的比较。
 第一个参数-第二个参数为升序
 
 Java中  String、Byte、Char、Date 等大量的类都实现了Compareable接口。
-
-
-
-**边循环边删除的问题**
-
-* for循环，删除后元素前移
-* 增强for，ConcurrentModificationException
-* 使用迭代器的remove
 
 
 
@@ -838,8 +883,6 @@ HashSet通过HashMap实现，TreeSet通过TreeSet实现
 * 一个节点如果是红色，则它的子节点必须是黑色
 * 每个节点到达叶子节点所需要经过的黑色节点相同，相对接近平和二叉树
 * 添加删除后都要旋转保持特性
-
-
 
 
 
@@ -1040,9 +1083,20 @@ CopyOnWriteArrayList
 
 
 
+**interrupt，interrupted，isInterrupted都是用来干嘛的**
+
+interrupt给线程设置一个中断标志，线程仍会继续运行
+
+interrupted作用是测试当前线程是否被中断（检查中断标志），返回一个boolean并清除中断状态，第二次再调用时中断状态已经被清除，将返回一个false。
+
+isInterrupted只测试此线程是否被中断 ，不清除中断状态
+
+
+
 **如何停止正在运行的线程**
 
-* stop方法，已经等废弃，可能会造成数据不一致问题
+interrupt() 加上手动抛异常的方式是目前中断一个正在运行的线程**最为正确**的方式了
+
 * interrupt方法，标记当前线程状态，并不会停止线程
 * 
 
@@ -1706,6 +1760,10 @@ public class Singleton {
 
 
 
+**volatile底层原理**
+
+
+
 轻量级的同步机制，主要的作用是1. 保证变量的可见性，2. 禁止指令重排序
 
 保证可见性：一个线程修改了变量，其它线程可以立马感知到。volatile变量修改时会立马刷新到主内存中，每次都要从内存中重新读取
@@ -1774,6 +1832,16 @@ CountDownLatch 的作用就是 允许 count 个线程阻塞在一个地方，直
 
 
 
+## 并发容器
+
+* ConcurrentHashMap: 线程安全的 HashMap
+* CopyOnWriteArrayList: 线程安全的 List，在读多写少的场合性能非常好，远远好于 Vector.
+* ConcurrentLinkedQueue: 高效的并发队列，使用链表实现。可以看做一个线程安全的 LinkedList，这是一个非阻塞队
+* BlockingQueue: 阻塞队列接口，JDK 内部通过链表、数组等方式实现了这个接口。非常适合用于作为数据共享的通道
+* ConcurrentSkipListMap: 跳表的实现。使用跳表的数据结构进行快速查找
+
+
+
 ## **ThreadLocal **
 
 
@@ -1836,6 +1904,12 @@ condition
 多线程下载
 
 
+
+# 反射
+
+
+
+ **什么是反射**
 
 # JVM
 
